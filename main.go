@@ -23,7 +23,20 @@ func main() {
 		max, err := strconv.Atoi(os.Args[3])
 		checkError(err)
 		createKey(os.Args[2], int32(max))
+	} else if strings.ToUpper(os.Args[1]) == modeR[0] || strings.ToUpper(os.Args[1]) == modeR[1] {
+		checkArgs("-R", os.Args)
 
+		pos, err := strconv.Atoi(os.Args[3])
+		checkError(err)
+		quan, err := strconv.Atoi(os.Args[4])
+		checkError(err)
+
+		readKey(os.Args[2], int32(pos), int32(quan), getLength(os.Args[2]))
+	} else if strings.ToUpper(os.Args[1]) == modeL[0] || strings.ToUpper(os.Args[1]) == modeL[1] {
+		checkArgs("-L", os.Args)
+		fmt.Println("Length of file:", getLength(os.Args[2]))
+	} else {
+		getError("mode not found")
 	}
 }
 
@@ -77,4 +90,41 @@ func generateKey(max int32) []byte {
 		slice[max] = slice[max]%94 + 33
 	}
 	return slice
+}
+
+func getLength(filename string) int32 {
+	file, err := os.Open(filename)
+	checkError(err)
+	defer file.Close()
+
+	info, err := file.Stat()
+	checkError(err)
+	return int32(info.Size())
+}
+
+func readKey(filename string, position, quantity, length int32) {
+	if length < position+quantity {
+		getError("length of file < position + quantity")
+	} else {
+		fmt.Println(getChars(filename, length, position, quantity))
+	}
+}
+
+func getChars(filename string, length, position, quantity int32) string {
+	file, err := os.Open(filename)
+	checkError(err)
+	defer file.Close()
+
+	var bytes []byte = make([]byte, length)
+	_, err = file.Read(bytes)
+	checkError(err)
+
+	var read string
+	var max int32 = position + quantity
+
+	for i := position; i < max; i++ {
+		read += string(bytes[i])
+	}
+
+	return read
 }
